@@ -1,19 +1,37 @@
-CC = g++
-CFLAGS = -O3 --std=c++11
+# Nome dell'eseguibile finale
+TARGET = main
+
+# Directory dei sorgenti e delle librerie
+SRC_DIR = .
+LIB_DIR = ../../Librerie
+
+# File sorgenti
+SRC_FILES = $(SRC_DIR)/main.cpp
+LIB_FILES = $(wildcard $(LIB_DIR)/*.cpp)
+
+# File oggetto
+OBJ_FILES = $(SRC_FILES:.cpp=.o) $(LIB_FILES:.cpp=.o)
+
+# Compilatore e flag
+CXX = g++
+CXXFLAGS = -I$(LIB_DIR) -O3 --std=c++11
 AFLAGS = -larmadillo
-all: simulator.exe
-simulator.exe : system.o NSL_SIMULATOR.o particle.o random.o
-	$(CC) system.o particle.o random.o NSL_SIMULATOR.o -o simulator.exe $(AFLAGS)
-NSL_SIMULATOR.o : NSL_SIMULATOR.cpp system.h particle.h
-	$(CC) -c NSL_SIMULATOR.cpp -o NSL_SIMULATOR.o $(CFLAGS)
-system.o : system.cpp system.h random.h particle.h
-	$(CC) -c system.cpp -o system.o $(CFLAGS)
-particle.o : particle.cpp particle.h
-	$(CC) -c particle.cpp -o particle.o $(CFLAGS)
-random.o : random.cpp random.h
-	$(CC) -c random.cpp -o random.o $(CFLAGS)
-clean :
-	rm *.o simulator.exe
-remove:
-	rm ../OUTPUT/*.*
-	rm ../OUTPUT/CONFIG/*.*
+
+# Regola predefinita
+all: $(TARGET)
+	rm $(SRC_DIR)/*.o
+
+# Regola per creare l'eseguibile
+$(TARGET): $(OBJ_FILES)
+	$(CXX) -o $@ $^ $(AFLAGS)
+
+# Regola per creare i file oggetto
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@ $(CFLAGS)
+
+# Pulizia dei file oggetto e dell'eseguibile
+clean:
+	rm -f $(OBJ_FILES) $(TARGET)
+
+.PHONY: all clean
+

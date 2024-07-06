@@ -7,9 +7,9 @@
 #include <vector>
 #include <armadillo>
 
-#include "funzione.h"
-#include "metropolis.h"
-#include "random.h"
+#include "../Librerie/funzione.h"
+#include "../Librerie/metropolis.h"
+#include "../Librerie/random.h"
 
 using namespace std;
 using namespace arma;
