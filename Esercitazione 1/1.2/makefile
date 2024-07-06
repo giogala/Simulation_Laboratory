@@ -1,25 +1,37 @@
-LIB_DIR := ../../Librerie/Random\ Generator/
-INC_DIR := ../../Librerie/Random\ Generator/include/
+# Nome dell'eseguibile finale
+TARGET = main
 
-# Utilizzo di queste variabili per definire le variabili LIBS e INCS
-LIBS := -L$(LIB_DIR)
-INCS := -I$(INC_DIR)
+# Directory dei sorgenti e delle librerie
+SRC_DIR = .
+LIB_DIR = ../../Librerie
 
-main : main.o random.o
-	g++ -o main main.o random.o $(LIBS)
+# File sorgenti
+SRC_FILES = $(SRC_DIR)/main.cpp
+LIB_FILES = $(wildcard $(LIB_DIR)/*.cpp)
 
-main.o : main.cpp
-	g++ -c main.cpp -o main.o $(INCS)
+# File oggetto
+OBJ_FILES = $(SRC_FILES:.cpp=.o) $(LIB_FILES:.cpp=.o)
 
-random.o : $(LIB_DIR)random.cpp $(INC_DIR)random.h
-	g++ -c $(LIB_DIR)random.cpp -o random.o $(INCS)
+# Compilatore e flag
+CXX = g++
+CXXFLAGS = -I$(LIB_DIR) -O3 --std=c++11
+AFLAGS = -larmadillo
 
-$(INC_DIR)random.h : ../../Librerie/Random\ Generator/random.h
-	mkdir -p $(INC_DIR)
-	cp ../../Librerie/Random\ Generator/random.h $(INC_DIR)
+# Regola predefinita
+all: $(TARGET)
+	rm $(SRC_DIR)/*.o
 
+# Regola per creare l'eseguibile
+$(TARGET): $(OBJ_FILES)
+	$(CXX) -o $@ $^ $(AFLAGS)
+
+# Regola per creare i file oggetto
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@ $(CFLAGS)
+
+# Pulizia dei file oggetto e dell'eseguibile
 clean:
-	rm -f main main.o random.o
+	rm -f $(OBJ_FILES) $(TARGET)
 
-
+.PHONY: all clean
 
