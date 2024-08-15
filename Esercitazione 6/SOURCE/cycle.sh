@@ -2,13 +2,15 @@
 
 
 sim_type="$1"
-if sim_type == "2"; then
+if [[ "$sim_type" = "2" ]]; then
     tot_dir="../METRO"
     input_file="metro.dat"
-fi
-elif sim_type == "3"; then
+elif [[ "$sim_type" = "3" ]]; then
     tot_dir="../GIBBS"
     input_file="gibbs.dat"
+else
+    echo "Tipo di simulazione non valido. Usa '2' o '3'."
+    exit 1
 fi
 # Definisci le liste dei file di input (data) e di output (tot)
 data_files=("total_energy.dat" "magnetization.dat" "specific_heat.dat" "susceptibility.dat" "acceptance.dat")
@@ -24,26 +26,25 @@ mkdir -p "$tot_dir"
 steps="$4"
 
 
-
-# Lettura del contenuto del file input.dat in un array senza mapfile
-lines=()
-while IFS= read -r line; do
-    lines+=("$line")
-done < "$input_dir/$input_file"
-
-
-# Estrai la prima riga
-line="${lines[0]}"
-# Suddividi la riga in colonne usando la tabulazione come delimitatore
-IFS=$'\t' read -r -a columns <<< "$line"
-
-# Modifica la seconda colonna con il valore calcolato
-columns[1]="$sim_type"
-# Ricompone la riga modificata
-new_line=$(IFS=$'\t'; echo "${columns[*]}")
-lines[0]="$new_line"
-# Scrivi il contenuto modificato nel file input.dat
-printf "%s\n" "${lines[@]}" > "$input_dir/$input_file"
+## Lettura del contenuto del file input.dat in un array senza mapfile
+#lines=()
+#while IFS= read -r line; do
+#    lines+=("$line")
+#done < "$input_dir/$input_file"
+#
+#
+## Estrai la prima riga
+#line="${lines[0]}"
+## Suddividi la riga in colonne usando la tabulazione come delimitatore
+#IFS=$'\t' read -r -a columns <<< "$line"
+#
+## Modifica la seconda colonna con il valore calcolato
+#columns[1]="$sim_type"
+## Ricompone la riga modificata
+#new_line=$(IFS=$'\t'; echo "${columns[*]}")
+#lines[0]="$new_line"
+## Scrivi il contenuto modificato nel file input.dat
+#printf "%s\n" "${lines[@]}" > "$input_dir/$input_file"
 
 
 # Ciclo per ogni step
@@ -54,7 +55,7 @@ for ((i=0; i<steps; i++)); do
     temp="TEMP                   $value"
     
     if grep -q "TEMP" "$input_dir/$input_file"; then
-        sed -i "/TEMP/c\\$temp" "$input_dir/$data_file"
+        sed -i '' "s|TEMP.*|$temp|" "$input_dir/$input_file"
         #echo "Modificata la linea contenente 'TEMP' in $data_file con: '$value'"
     else
         echo "Nessuna linea contenente 'TEMP' trovata in $data_file"

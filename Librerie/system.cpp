@@ -66,8 +66,7 @@ double System :: Force(int i, int dim){
 
 void System :: move(int i){ // Propose a MC move for particle i
     if(_sim_type == 3){ //Gibbs sampler for Ising
-        int s=_particle(i).getspin();
-        double p_up= 1./(1.+exp(-s*_beta*_J*(_particle(this->pbc(i-1)).getspin()+_particle(this->pbc(i+1)).getspin())));
+        double p_up= 1./(1.+exp(-_beta*(_J*2*(_particle(this->pbc(i-1)).getspin()+_particle(this->pbc(i+1)).getspin())+_H*2)));
             // è giusta così?
         if(_rnd.Rannyu()<p_up) _particle(i).setspin(1);
         else _particle(i).setspin(-1);
