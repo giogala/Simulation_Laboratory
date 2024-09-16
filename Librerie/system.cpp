@@ -133,15 +133,15 @@ int System :: pbc(int i){ // Enforce periodic boundary conditions for spins
 void System :: SetInputf(string inpf){
     inp_f=inpf;
 }
-void System :: initialize(string inp_d, string out_d){ // Initialize the System object according to the content of the input files in the ../INPUT/ directory
+void System :: initialize(string inp_d, string out_d, string ran_d,string f_inp){ // Initialize the System object according to the content of the input files in the ../INPUT/ directory
     inp=inp_d;
     out=out_d;
     int p1, p2; // Read from ../INPUT/Primes a pair of numbers to be used to initialize the RNG
-    ifstream Primes(inp+"/Primes");
+    ifstream Primes(ran_d+"/Primes");
     Primes >> p1 >> p2 ;
     Primes.close();
     int seed[4]; // Read the seed of the RNG
-    ifstream Seed(inp+"/seed.in");
+    ifstream Seed(ran_d+"/seed.in");
     Seed >> seed[0] >> seed[1] >> seed[2] >> seed[3];
     _rnd.SetRandom(seed,p1,p2);
     
@@ -149,7 +149,7 @@ void System :: initialize(string inp_d, string out_d){ // Initialize the System 
     couta << "#   N_BLOCK:  ACCEPTANCE:" << endl;
     couta.close();
     
-    ifstream input(inp+"/input.dat"); // Start reading ../INPUT/input.dat
+    ifstream input(inp+"/"+f_inp); // Start reading ../INPUT/input.dat
     ofstream coutf;
     coutf.open(out+"/output.dat");
     string property;

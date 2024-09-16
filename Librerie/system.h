@@ -71,7 +71,7 @@ public: // Function declarations
     int get_nbl();              // Get the number of blocks
     int get_nsteps();           // Get the number of steps in each block
     void SetInputf(string inpf);// Set the input file name
-    void initialize(string inp_d,string out_d);          // Initialize system properties
+    void initialize(string inp_d,string out_d,string ran_d,string f_inp);          // Initialize system properties
     void initialize_properties();// Initialize properties for measurement
     void finalize();            // Finalize system and clean up
     void write_configuration(); // Write final system configuration to XYZ file

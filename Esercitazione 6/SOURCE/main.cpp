@@ -14,18 +14,27 @@ _/    _/  _/_/_/  _/_/_/_/ email: Davide.Galli@unimi.it
 using namespace std;
 
 int main (int argc, char *argv[]){
+    if(argc<1){
+        cerr<<"Error! Usage of the program: "<<argv[0]<<" <input.dat>"<<endl;
+        return -1;
+    }
     int nconf = 1;
     System SYS;
-    SYS.initialize("../INPUT","../OUTPUT");
+    SYS.initialize("../INPUT","../OUTPUT","../../Librerie/Random Generator",argv[1]);
     SYS.initialize_properties();
     SYS.block_reset(0);
     //SYS.initialize_velocities(0);
+    for(int i=0; i<20; i++) {
+        SYS.step(); // equilibration steps
+        SYS.measure();
+    }
     for(int i=0; i < SYS.get_nbl(); i++){ //loop over blocks
         for(int j=0; j < SYS.get_nsteps(); j++){ //loop over steps in a block
             SYS.step();
             SYS.measure();
             if(j%10 == 0){
-                //          SYS.write_XYZ(nconf); //Write actual configuration in XYZformat //Commented to avoid "filesystem full"!
+                //SYS.write_XYZ(nconf);
+                //Write actual configuration in XYZformat //Commented to avoid "filesystem full"!
                 nconf++;
             }
         }
