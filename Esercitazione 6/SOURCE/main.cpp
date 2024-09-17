@@ -23,11 +23,9 @@ int main (int argc, char *argv[]){
     SYS.initialize("../INPUT","../OUTPUT","../../Librerie/Random Generator",argv[1]);
     SYS.initialize_properties();
     SYS.block_reset(0);
+    SYS.read_configuration();
     //SYS.initialize_velocities(0);
-    for(int i=0; i<20; i++) {
-        SYS.step(); // equilibration steps
-        SYS.measure();
-    }
+
     for(int i=0; i < SYS.get_nbl(); i++){ //loop over blocks
         for(int j=0; j < SYS.get_nsteps(); j++){ //loop over steps in a block
             SYS.step();

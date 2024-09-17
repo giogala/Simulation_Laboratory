@@ -579,18 +579,18 @@ void System :: measure(){ // Measure properties
         }
     }
     // POTENTIAL ENERGY //////////////////////////////////////////////////////////
-    if (_measure_penergy){
+    if (_measure_penergy or _measure_tenergy){
         penergy_temp = _vtail + 4.0 * penergy_temp / double(_npart);
         _measurement(_index_penergy) = penergy_temp;
     }
     // KINETIC ENERGY ////////////////////////////////////////////////////////////
-    if (_measure_kenergy){
+    if (_measure_kenergy or _measure_tenergy or _measure_temp){
         for (int i=0; i<_npart; i++) kenergy_temp += 0.5 * dot( _particle(i).getvelocity() , _particle(i).getvelocity() );
         kenergy_temp /= double(_npart);
         if(_sim_type != -1)_measurement(_index_kenergy) = kenergy_temp;
     }
     // TOTAL ENERGY (kinetic+potential) //////////////////////////////////////////
-    if (_measure_tenergy){
+    if (_measure_tenergy or _measure_cv){
         if (_sim_type < 2) _measurement(_index_tenergy) = kenergy_temp + penergy_temp;
         else {
             double s_i, s_j;
@@ -604,35 +604,23 @@ void System :: measure(){ // Measure properties
         }
     }
     // TEMPERATURE ///////////////////////////////////////////////////////////////
-    if (_measure_temp and _measure_kenergy) {
+    if (_measure_temp) {
         if(_sim_type == -1) _measurement(_index_t[_k]) = (2.0/3.0) * kenergy_temp;
         else _measurement(_index_temp) = (2.0/3.0) * kenergy_temp;
     }
      // PRESSURE //////////////////////////////////////////////////////////////////
-    if(_measure_pressure) _measurement(_index_pressure) = (2.0/3.0) * kenergy_temp * _rho + 48. * virial / (   double(_npart)*_volume*3.);
+    if(_measure_pressure) _measurement(_index_pressure) = (2.0/3.0) * kenergy_temp * _rho + 48. * virial / (double(_npart)*_volume*3.);
      // MAGNETIZATION /////////////////////////////////////////////////////////////
-    if(_measure_magnet) {
+    if(_measure_magnet or _measure_chi) {
         for(int i=0; i<_npart; i++) _measurement(_index_magnet) += (double)_particle(i).getspin()/_npart;
     }
      // SPECIFIC HEAT /////////////////////////////////////////////////////////////
-    if(_measure_cv and _measure_tenergy) {
-        double energy2=0;
-        double s_i, s_j;
-        for (int i=0; i<_npart; i++){
-            s_i = double(_particle(i).getspin());
-            s_j = double(_particle(this->pbc(i+1)).getspin());
-            energy2 += pow(- _J * s_i * s_j - 0.5 * _H * (s_i + s_j),2);
-        }
-        energy2 /= double(_npart);
-        _measurement(_index_cv) = _beta * _beta * (energy2-pow(_measurement(_index_tenergy),2));
-        // da controllare le unità naturali
+    if(_measure_cv) {
+        _measurement(_index_cv) = pow(_measurement(_index_tenergy),2);
     }
      // SUSCEPTIBILITY ////////////////////////////////////////////////////////////
-    if(_measure_chi and _measure_magnet) {
-        double si2=0;
-        for(int i=0; i<_npart; i++) si2 += pow(_particle(i).getspin(),2);
-        _measurement(_index_chi) = _beta * (si2 - pow(_measurement(_index_magnet)*_npart,2));
-        // da controllare le unità naturali
+    if(_measure_chi) {
+        _measurement(_index_chi) = _beta*pow(_measurement(_index_magnet),2)*double(_npart);
     }
 
     _block_av += _measurement; //Update block accumulators
@@ -646,6 +634,9 @@ void System :: averages(int blk){
     double average, sum_average, sum_ave2;
     
     _average     = _block_av / double(_nsteps);
+    
+    if (_measure_cv) _average(_index_cv) = _beta * _beta * (_average(_index_cv) - pow(_average(_index_tenergy), 2)) * double(_npart);
+    
     _global_av  += _average;
     _global_av2 += _average % _average; // % -> element-wise multiplication
     
