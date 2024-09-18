@@ -166,13 +166,6 @@ void System :: initialize(string inp_d, string out_d, string ran_d,string f_inp)
                 cerr << "PROBLEM: unknown simulation type" << endl;
                 exit(EXIT_FAILURE);
             }
-            /*else if(_sim_type == -1){
-                input >> _t; input >> _n;
-                _ts = new double[(int)_n];
-                for(int i=0;i<_n;i++) _ts[i]=_t+0.1*i;
-                coutf << "EQUILIBRATION" << endl;
-                cerr << "EQUILIBRATION" << endl;//mi continua a stampare questo durante initialize, perché?
-            }*/
             else if(_sim_type == 0) coutf << "LJ MOLECULAR DYNAMICS (NVE) SIMULATION"  << endl;
             else if(_sim_type == 1) coutf << "LJ MONTE CARLO (NVT) SIMULATION"         << endl;
             else if(_sim_type == 2) coutf << "ISING 1D MONTE CARLO (MRT^2) SIMULATION" << endl;
@@ -496,7 +489,7 @@ void System :: write_velocities(){
     coutf.open(out+"/CONFIG/velocities.out");
     if(coutf.is_open()){
         for(int i=0; i<_npart; i++){
-            coutf << "\t" << _particle(i).getvelocity(0)          // vx
+            coutf << _particle(i).getvelocity(0)          // vx
             << "\t" << _particle(i).getvelocity(1)          // vy
             << "\t" << _particle(i).getvelocity(2) << endl; // vz
         }
