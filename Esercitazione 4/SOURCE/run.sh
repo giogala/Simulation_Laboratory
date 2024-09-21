@@ -41,21 +41,23 @@ while [[ "$equil" == "false" ]]; do
     echo -e "Eseguita\n"
     t_in=$(grep "TEMPERATURE=" "$output_dir/output.dat" | awk -F'=' '{print $2}' | xargs) # temperatura teorica della simulazione
     t_out=$(tail -n 1 "$output_dir/temperature.dat" | awk -F'\t' '{print $3}') # temperatura reale finale della simulazione
+    sigma=$(tail -n 1 "$output_dir/temperature.dat" | awk -F'\t' '{print $4}') # incertezza sulla temperatura
     
     # Calcola lo scostamento (delta) tra la temperatura finale e quella teorica
     delta=$(echo "$t_fin - $t_out" | bc)
 
-    # Condizione per verificare l'equilibrio (se delta^2 < 0.01)
+    # Condizione per verificare l'equilibrio (se delta^2 < 4 sigma^2)
     delta_squared=$(echo "$delta * $delta" | bc)
-    if (( $(echo "$delta_squared < 0.01" | bc -l) )); then
+    sigma_squared=$(echo "$sigma * $sigma * 4" | bc)
+    if (( $(echo "$delta_squared < $sigma_squared" | bc -l) )); then
         equil="true"
-        echo -e "Raggiunta T = $t_out. Equilibrazione completata"
+        echo -e "Raggiunta T = $t_out ± $sigma. Equilibrazione completata"
         mv "$output_dir/CONFIG/velocities.out" "$input_dir/CONFIG/velocities.in"
-        mv "$output_dir/CONFIG/config.xyz" "$input_dir/CONFIG"
+        mv "$output_dir/CONFIG/config.xyz" "$input_dir/CONFIG/config_eq.xyz"
     else
         # Aggiusta t_in in properties.dat
         t_new=$(echo "$t_in + $delta" | bc)
-        echo "Raggiunta T = $t_out. Nuova equilibrazione a T = $t_new"
+        echo "Raggiunta T = $t_out ± $sigma. Nuova equilibrazione a T = $t_new"
         
         temp="TEMP                   $t_new"
         if grep -q "TEMP" "$input_dir/$input_file"; then
@@ -90,6 +92,10 @@ done
 
 # Sposta i .xyz nella cartella CONFIG apposita
 mv "$output_dir/CONFIG/config_"* "$tot_dir/CONFIG/"
+
+# Sposto posizioni e velocità equilibrate nella cartella apposita
+mv "$input_dir/CONFIG/velocities.in" "$tot_dir/"
+mv "$input_dir/CONFIG/config_eq.xyz" "$tot_dir/"
 
 # Resetto i valori di temperatura e restart in input.dat
 temp="TEMP                   $t_fin"

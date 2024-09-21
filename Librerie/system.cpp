@@ -501,7 +501,10 @@ void System :: write_velocities(){
 // Read configuration from a .xyz file in directory ../OUTPUT/CONFIG/
 void System :: read_configuration(){
     ifstream cinf;
-    cinf.open(inp+"/CONFIG/config.xyz");
+    string config;
+    if(_restart and _sim_type < 2) config="config_eq.xyz";
+    else config="config.xyz";
+    cinf.open(inp+"/CONFIG/"+config);
     if(cinf.is_open()){
         string comment;
         string particle;
