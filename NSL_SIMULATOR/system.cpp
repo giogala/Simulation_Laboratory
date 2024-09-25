@@ -302,7 +302,7 @@ void System :: initialize_properties(){ // Initialize data members used for meas
         _index_penergy = index_property;
         _measure_penergy = true;
         index_property++;
-        _vtail = 0.0; // TO BE FIXED IN EXERCISE 7
+          _vtail = 8. * M_PI * _rho *(1./(pow(_r_cut,9)*9.) - 1./(pow(_r_cut,3)*3.)); // TO BE FIXED IN EXERCISE 7
       } else if( property == "KINETIC_ENERGY" ){
         ofstream coutk("../OUTPUT/kinetic_energy.dat");
         coutk << "#     BLOCK:   ACTUAL_KE:    KE_AVE:      ERROR:" << endl;
@@ -335,7 +335,7 @@ void System :: initialize_properties(){ // Initialize data members used for meas
         _measure_pressure = true;
         _index_pressure = index_property;
         index_property++;
-        _ptail = 0.0; // TO BE FIXED IN EXERCISE 7
+          _ptail = 32. * M_PI * _rho * (1./(pow(_r_cut,9)*9.) - 1./(pow(_r_cut,3)*6.)); // TO BE FIXED IN EXERCISE 7
       } else if( property == "GOFR" ){
         ofstream coutgr("../OUTPUT/gofr.dat");
         coutgr << "# DISTANCE:     AVE_GOFR:        ERROR:" << endl;
@@ -527,10 +527,12 @@ void System :: measure(){ // Measure properties
         distance(1) = this->pbc( _particle(i).getposition(1,true) - _particle(j).getposition(1,true), 1);
         distance(2) = this->pbc( _particle(i).getposition(2,true) - _particle(j).getposition(2,true), 2);
         dr = sqrt( dot(distance,distance) );
-        // GOFR ... TO BE FIXED IN EXERCISE 7
+        for(int k=0;k<_n_bins;k++){
+            if(dr >= k * _bin_size and dr < (k+1.) * _bin_size)_measurement(_index_gofr + k)+=2;
+        }
         if(dr < _r_cut){
           if(_measure_penergy)  penergy_temp += 1.0/pow(dr,12) - 1.0/pow(dr,6); // POTENTIAL ENERGY
-          // PRESSURE ... TO BE FIXED IN EXERCISE 4 
+          if(_measure_pressure) virial += 1.0/pow(dr,12) - 0.5/pow(dr,6);// PRESSURE
         }
       }
     }
@@ -562,7 +564,8 @@ void System :: measure(){ // Measure properties
   }
   // TEMPERATURE ///////////////////////////////////////////////////////////////
   if (_measure_temp and _measure_kenergy) _measurement(_index_temp) = (2.0/3.0) * kenergy_temp;
-  // PRESSURE //////////////////////////////////////////////////////////////////
+  // PRESSURE
+  if(_measure_pressure) _measurement(_index_pressure) = (2.0/3.0) * kenergy_temp * _rho + 48. * virial / (double(_npart)*_volume*3.) + _ptail;
 // TO BE FIXED IN EXERCISE 4
   // MAGNETIZATION /////////////////////////////////////////////////////////////
 // TO BE FIXED IN EXERCISE 6
@@ -634,7 +637,17 @@ void System :: averages(int blk){
     coutf.close();
   }
   // PRESSURE //////////////////////////////////////////////////////////////////
-  // TO BE FIXED IN EXERCISE 4
+  if (_measure_pressure){
+      coutf.open("..OUTPUT/pressure.dat",ios::app);
+      average  = _average(_index_pressure);
+      sum_average = _global_av(_index_pressure);
+      sum_ave2 = _global_av2(_index_pressure);
+      coutf << blk
+          << "\t" << average
+          << "\t" << sum_average/double(blk)
+          << "\t" << this->error(sum_average, sum_ave2, blk) << endl;
+      coutf.close();
+  }
   // GOFR //////////////////////////////////////////////////////////////////////
   // TO BE FIXED IN EXERCISE 7
   // MAGNETIZATION /////////////////////////////////////////////////////////////

@@ -7,6 +7,7 @@
 _/    _/  _/_/_/  _/_/_/_/ email: Davide.Galli@unimi.it
 *****************************************************************
 *****************************************************************/
+#define _USE_MATH_DEFINES
 
 #include <cmath>
 #include <cstdlib>
@@ -146,7 +147,7 @@ void System :: initialize(string inp_d, string out_d, string ran_d,string f_inp)
     _rnd.SetRandom(seed,p1,p2);
     
     ofstream couta(out+"/acceptance.dat"); // Set the heading line in file ../OUTPUT/acceptance.dat
-    couta << "#   N_BLOCK:  ACCEPTANCE:" << endl;
+    couta << "N_BLOCK:\tACCEPTANCE:" << endl;
     couta.close();
     
     ifstream input(inp+"/"+f_inp); // Start reading ../INPUT/input.dat
@@ -228,9 +229,7 @@ void System :: initialize(string inp_d, string out_d, string ran_d,string f_inp)
         } else cerr << "PROBLEM: unknown input" << endl;
     }
     input.close();
-    if(_sim_type < 1){
-        this->read_configuration();
-    }
+    this->read_configuration();
     if(_sim_type!=-1)this->initialize_velocities(0);
     coutf << "System initialized!" << endl;
     coutf.close();
@@ -566,7 +565,9 @@ void System :: measure(){ // Measure properties
                 distance(1) = this->pbc( _particle(i).getposition(1,true) - _particle(j).getposition(1,true), 1);
                 distance(2) = this->pbc( _particle(i).getposition(2,true) - _particle(j).getposition(2,true), 2);
                 dr = sqrt( dot(distance,distance) );
-                // GOFR ... TO BE FIXED IN EXERCISE 7
+                for(int k=0;k<_n_bins;k++){
+                    if(dr >= k * _bin_size and dr < (k+1.) * _bin_size) _measurement(_index_gofr + k)+=2;
+                }
                 if(dr < _r_cut){
                     if(_measure_penergy)  penergy_temp += 1.0/pow(dr,12) - 1.0/pow(dr,6); // POTENTIAL ENERGY
                     if(_measure_pressure) virial += 1.0/pow(dr,12) - 0.5/pow(dr,6); // PRESSURE
@@ -580,7 +581,7 @@ void System :: measure(){ // Measure properties
         _measurement(_index_penergy) = penergy_temp;
     }
     // KINETIC ENERGY ////////////////////////////////////////////////////////////
-    if (_measure_kenergy or _measure_tenergy or _measure_temp){
+    if (_measure_kenergy or _measure_tenergy or _measure_temp or _measure_pressure){
         for (int i=0; i<_npart; i++) kenergy_temp += 0.5 * dot( _particle(i).getvelocity() , _particle(i).getvelocity() );
         kenergy_temp /= double(_npart);
         if(_sim_type != -1)_measurement(_index_kenergy) = kenergy_temp;
@@ -605,7 +606,7 @@ void System :: measure(){ // Measure properties
         else _measurement(_index_temp) = (2.0/3.0) * kenergy_temp;
     }
      // PRESSURE //////////////////////////////////////////////////////////////////
-    if(_measure_pressure) _measurement(_index_pressure) = (2.0/3.0) * kenergy_temp * _rho + 48. * virial / (double(_npart)*_volume*3.);
+    if(_measure_pressure) _measurement(_index_pressure) = (2.0/3.0) * kenergy_temp * _rho + 48. * virial / (double(_npart)*_volume*3.) + _ptail;
      // MAGNETIZATION /////////////////////////////////////////////////////////////
     if(_measure_magnet or _measure_chi) {
         for(int i=0; i<_npart; i++) _measurement(_index_magnet) += (double)_particle(i).getspin()/_npart;
@@ -632,6 +633,9 @@ void System :: averages(int blk){
     _average     = _block_av / double(_nsteps);
     
     if (_measure_cv) _average(_index_cv) = _beta * _beta * (_average(_index_cv) - pow(_average(_index_tenergy), 2)) * double(_npart);
+    if (_measure_gofr){
+        for(int k=0;k<_n_bins;k++) _average(_index_gofr + k) /= _rho * _npart * 4. * M_PI * (pow((k+1.)*_bin_size,3)-pow(k*_bin_size,3))/3.;
+    }
     
     _global_av  += _average;
     _global_av2 += _average % _average; // % -> element-wise multiplication
@@ -709,7 +713,18 @@ void System :: averages(int blk){
         coutf.close();
     }
     // GOFR //////////////////////////////////////////////////////////////////////
-    // TO BE FIXED IN EXERCISE 7
+    if (_measure_gofr and blk == _nblocks){
+        coutf.open(out+"/gofr.dat",ios::app);
+        for(int k=0;k<_n_bins;k++){
+            average  = _average(_index_gofr + k);
+            sum_average = _global_av(_index_gofr + k);
+            sum_ave2 = _global_av2(_index_gofr + k);
+            coutf << k * _bin_size
+            << "\t" << average
+            << "\t" << this->error(sum_average, sum_ave2, blk) << endl;
+        }
+        coutf.close();
+    }
     // MAGNETIZATION /////////////////////////////////////////////////////////////
     if (_measure_magnet){
         coutf.open(out+"/magnetization.dat",ios::app);
@@ -751,7 +766,7 @@ void System :: averages(int blk){
     coutf.open(out+"/acceptance.dat",ios::app);
     if(_nattempts > 0) fraction = double(_naccepted)/double(_nattempts);
     else fraction = 0.0;
-    coutf << "\t" << blk << "\t" << fraction << endl;
+    coutf << blk << "\t" << fraction << endl;
     coutf.close();
     
     return;
