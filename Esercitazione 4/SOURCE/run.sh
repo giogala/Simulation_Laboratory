@@ -30,6 +30,23 @@ output_dir="../OUTPUT"
 t_fin=$(grep "TEMP" "$input_dir/$input_file" | awk '{print $2}')
 echo "$t_fin"
 
+# Definisco una funzione per le sostituzioni in input.dat
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    SED_CMD="sed -i ''"  # Per macOS
+else
+    SED_CMD="sed -i"     # Per Linux
+fi
+sub () {
+    str="$1"
+    par="$2"
+    if grep -q "$par" "$input_dir/$input_file"; then
+    $SED_CMD "s|$par.*|$str|" "$input_dir/$input_file"
+    else
+        echo "Nessuna linea contenente '$par' trovata in $input_file"
+    fi
+# sed -i '' "s|$par.*|$str|" "$input_dir/$input_file"
+}
+
 # Crea la directory se non esiste
 mkdir -p "$tot_dir"
 mkdir -p "$tot_dir/CONFIG"
@@ -58,13 +75,7 @@ while [[ "$equil" == "false" ]]; do
         # Aggiusta t_in in properties.dat
         t_new=$(echo "$t_in + $delta" | bc)
         echo "Raggiunta T = $t_out ± $sigma. Nuova equilibrazione a T = $t_new"
-        
-        temp="TEMP                   $t_new"
-        if grep -q "TEMP" "$input_dir/$input_file"; then
-            sed -i '' "s|TEMP.*|$temp|" "$input_dir/$input_file"
-        else
-            echo "Nessuna linea contenente 'TEMP' trovata in $input_file"
-        fi
+        sub "TEMP                   $t_new" "TEMP"
     fi
     # Sposto in una cartella a parte i dati di equilibrazione
     for ((j=0; j<${#data_files[@]}; j++)); do
@@ -74,12 +85,8 @@ while [[ "$equil" == "false" ]]; do
 done
 
 # Modifica linea della restart nell'input file
-restart="RESTART                1"
-if grep -q "RESTART" "$input_dir/$input_file"; then
-    sed -i '' "s|RESTART.*|$restart|" "$input_dir/$input_file"
-else
-    echo "Nessuna linea contenente 'RESTART' trovata in $input_file"
-fi
+sub "RESTART                1" "RESTART"
+
 echo "Simulazione avviata"
 
 # Esegui veramente la simulazione
@@ -98,15 +105,5 @@ mv "$input_dir/CONFIG/velocities.in" "$tot_dir/"
 mv "$input_dir/CONFIG/config_eq.xyz" "$tot_dir/"
 
 # Resetto i valori di temperatura e restart in input.dat
-temp="TEMP                   $t_fin"
-if grep -q "TEMP" "$input_dir/$input_file"; then
-    sed -i '' "s|TEMP.*|$temp|" "$input_dir/$input_file"
-else
-    echo "Nessuna linea contenente 'TEMP' trovata in $input_file"
-fi
-restart="RESTART                0"
-if grep -q "RESTART" "$input_dir/$input_file"; then
-    sed -i '' "s|RESTART.*|$restart|" "$input_dir/$input_file"
-else
-    echo "Nessuna linea contenente 'RESTART' trovata in $input_file"
-fi
+sub "TEMP                   $t_fin" "TEMP"
+sub "RESTART                0" "RESTART"
