@@ -66,10 +66,10 @@ step_zero=$(grep "DELTA" "$input_dir/$input_file" | awk '{print $2}') # parametr
 blk=$(grep "NBLOCKS" "$input_dir/$input_file" | awk '{print $2}') # numero di blocchi estratto da $input.dat
 spt=$(grep "NSTEPS" "$input_dir/$input_file" | awk '{print $2}') # numero di step per blocco estratto da $input.dat
 if [[ "$option" = "NVE" ]]; then
-    echo -e "∆ = $step_zero\n"
+    echo -e "T = $t_fin"
 else
-    echo -e "T = $t_fin\n"
-
+    echo -e "∆ = $step_zero"
+fi
 echo -e "$blk blocchi\n$spt step"
 
 # Crea la directory se non esiste
@@ -179,4 +179,5 @@ mv "$input_dir/CONFIG/config_eq.xyz" "$tot_dir/"
 
 # Resetto il restart in input.dat
 sub "RESTART                0" "RESTART"
+sub "TEMP                   $t_fin" "TEMP"
 
