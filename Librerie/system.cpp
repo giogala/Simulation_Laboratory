@@ -720,7 +720,7 @@ void System :: averages(int blk){
             sum_average = _global_av(_index_gofr + k);
             sum_ave2 = _global_av2(_index_gofr + k);
             coutf << k * _bin_size
-            << "\t" << average
+            << "\t" << sum_average/double(blk)
             << "\t" << this->error(sum_average, sum_ave2, blk) << endl;
         }
         coutf.close();
