@@ -32,7 +32,9 @@ int main (int argc, char** argv) {
     string *prop;
     prop = new string[1];
     prop[0] = "best";
-    //prop[1] = "mu";
+    prop[1] = "energy";
+    prop[2] = "mu";
+    prop[3] = "sigma";
     
     // a parametri fissati, calcolo E
     int L = int(SetProp(input,"NBLOCKS"));               //Numero di blocchi
@@ -46,19 +48,19 @@ int main (int argc, char** argv) {
     double div = SetProp(input,"DIV");              //divisore della temperatura
     
     vec par = {1.,1.};                  // parametri sigma e mu inziali
-    vec pos = {0.2};                    // posizione inziale di campionamento della funzione d'onda
+    vec pos = {1.0};                    // posizione inziale di campionamento della funzione d'onda
     hat distr(1.,1.);                   // funzione d'onda inizializzata con sigma = mu = 1.
     
     metropolis metro(distr,type[0],"../../Librerie/Random Generator/");
-    energy sys(L,O,1,1,type,metro,pos);
+    energy sys(L,O,1,1,type,metro,pos,false);
     boltzmann boltz(t,sys);
     metropolis bigM(boltz,type[0],"../../Librerie/Random Generator/");
     bigM.SetS(s);
-    annealing null(T,step,1,2,div,prop,sys,bigM);
+    annealing null(T,step,4,2,div,prop,sys,bigM);
     
     null.blocks(true);
     cout<<endl;
-
+    cout<<null.pos()(0)<<"\t"<<null.pos()(1)<<endl;
     return 0;
 }
 

@@ -87,11 +87,14 @@ string hydro_210::whoamI(){
 
 double hat::eval(vec a){
     if(a.n_elem == 1){
-        double nor = 1./(pow(M_PI,1./4.)*pow(par(0)*(1.+2.*exp(-pow(par(0)/par(1),2))),1./2.));
-        double uno = exp(-pow((a(0)-par(1))/par(0),2));
-        double due = exp(-pow((a(0)+par(1))/par(0),2));
-        double tre = 2.*exp(-(a(0)*a(0)+par(1)*par(1))/(par(0)*par(0)));
-        return nor*(uno+due+tre);
+        //double nor = 1./(pow(M_PI,1./4.)*pow(par(0)*(1.+2.*exp(-pow(par(0)/par(1),2))),1./2.));
+        double x = a(0);
+        double mu = par(1);
+        double s = par(0);
+        double uno = exp( -pow(x - mu,2)/(s*s) );
+        double due = exp( -pow(x + mu,2)/(s*s) );
+        double tre = 2. * exp( -pow(x - mu,2)/(2.*s*s) ) * exp( -pow(x + mu,2)/(2.*s*s) );
+        return uno+due+tre;
     }
     else{
         cerr<<"Error: only 1D vectors supported for hat function"<<endl;
@@ -108,13 +111,13 @@ double hat::eval(double r)const{
 };
 double hat::der(vec a)const{
     if(a.n_elem == 1){
-        double x = a(0);
-        double mu = par(1);
-        double s = par(0)*par(0);
-        double num = pow((x-mu)/s,2)*exp(-pow(x-mu,2)/(2*s))  +pow((x+mu)/s,2)*exp(-pow(x+mu,2)/(2*s));
-        double den = exp(-pow(x-mu,2)/(2*s)) + exp(-pow(x+mu,2)/(2*s));
-        double pot = pow(x,4) - 2.5*pow(x,2);
-        return 0.5*(1./s - num/den) + pot;
+        long double x = a(0);
+        long double mu = par(1);
+        long double s = par(0);
+        
+        double kin = -0.5 * ((pow(x - mu,2)/pow(s,4) - 1./pow(s,2)) *exp(-(pow(x - mu,2)/(2.*s*s))) + (pow(x + mu,2)/pow(s,4) - 1./pow(s,2)) *exp(-(pow(x + mu,2)/(2.*s*s))))/(exp(-(pow(x - mu,2)/(2.*s*s))) + exp(-(pow(x + mu,2)/(2.*s*s))));
+        double pot = pow(x, 4) - 2.5 * pow(x, 2);
+        return kin + pot;
     }
     else{
         cerr<<"Error: only 1D vectors supported for hat-function"<<endl;
@@ -132,7 +135,6 @@ double gauss3d::eval(vec a){
     vec r = a;
     if(rad) r = radial(r);
     vec c = {par(1),par(2),par(3)};
-    //cerr<<c<<endl;
     return pow(2*M_PI*par(0)*par(0),-(double)(3/2))*exp(-dot(r-c,r-c)/(2*par(0)*par(0)));
 };
 double gauss3d::eval(double r)const{

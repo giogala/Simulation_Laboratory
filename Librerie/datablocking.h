@@ -48,6 +48,7 @@ public:
     double error(double acc, double acc2, int blk);
     void reset();
     int N_blk();
+    vec pos();
 
     virtual vec increase(vec pos) =0;
     virtual void adjust(int prop) =0;
@@ -92,22 +93,29 @@ private:
 
 class energy: public datablocking{
 public:
-    energy(int L, int O, int p, int dim,string* file, metropolis& metro,vec pos):datablocking(L,O,p,dim,file),_metro(metro){
-        for(int i=0;i<_nprop;i++){
+    energy(int L, int O, int p, int dim,string* file, metropolis& metro,vec pos,bool prt):datablocking(L,O,p,dim,file),_metro(metro){
+        _prt = prt;
+        if(prt){
+            for(int i=0;i<_nprop;i++){
+                ofstream fout;
+                fout.open(_f[i]+".txt");
+                fout<<"BLOCK\tACTUAL_V\tV_AVE\tERROR"<<endl;
+                fout.close();
+            }
             ofstream fout;
-            fout.open(_f[i]+".txt");
-            fout<<"BLOCK\tACTUAL_V\tV_AVE\tERROR"<<endl;
+            fout.open("position.txt");
+            fout<<"Posizione"<<endl;
             fout.close();
         }
         _state = pos;
     };
     vec increase(vec pos);
     void adjust(int prop);
-    vec pos();
     metropolis& GetMetro();
     
 private:
     metropolis& _metro;
+    bool _prt;
 };
     
     

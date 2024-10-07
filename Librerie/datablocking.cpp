@@ -63,6 +63,7 @@ void datablocking::reset(){
 };
 int datablocking::N_blk(){return _nblock;};
 
+vec datablocking::pos(){return _state;};
 
 vec prova::increase(vec pos){
     for(int k=0;k<_nstep;k++){
@@ -80,13 +81,18 @@ vec energy::increase(vec pos){
     for(int k=0;k<_nstep;k++){
         pos = _metro.move(pos);
         blk_av(0) += _metro.GetDistr().der(pos);
+        if(_prt){
+            ofstream fout;
+            fout.open("position.txt",ios::app);
+            fout<<pos(0)<<endl;
+            fout.close();
+        }
     }
     return pos;
 };
 void energy::adjust(int prop){
     if(prop==0)_metro.adjust();
 };
-vec energy::pos(){return _state;};
 metropolis& energy::GetMetro(){return _metro;};
 
 double annealing::print(int blk,int prop,bool prt){
@@ -96,10 +102,17 @@ double annealing::print(int blk,int prop,bool prt){
     if(prt){
         ofstream fout;
         fout.open(_f[prop]+".txt",ios::app);
-        fout << _t * _div
-        << "\t" << _min(0)
-        << "\t" << _min(1)
-        << "\t" << _best << endl;
+        if(prop == 0){
+            fout << _t * _div
+            << "\t" << _min(0)
+            << "\t" << _min(1)
+            << "\t" << _best << endl;
+        } else {
+            fout << blk
+            << "\t" << average
+            << "\t" << sum_average/double(blk)
+            << "\t" << this->error(sum_average, sum_ave2, blk) << endl;
+        }
         fout.close();
     }
     return sum_average/double(blk);
@@ -113,7 +126,10 @@ vec annealing::increase(vec pos){
             _best = ef;
             _min = pos;
         }
+        blk_av(1) += ef;
     }
+    blk_av(2) = pos(0) * _nstep;
+    blk_av(3) = pos(1) * _nstep;
     return pos;
 };
 
@@ -121,7 +137,7 @@ void annealing::adjust(int prop){
     if(prop==0){
         _t /= _div;
         _metro.GetDistr().SetParam(0,_t);
-        _metro.adjust();
+        //_metro.adjust();
     }
 };
 

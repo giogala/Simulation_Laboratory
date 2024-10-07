@@ -38,6 +38,7 @@ vec metropolis::move(vec init){
         cerr<<"Error: Unknown transition distribution type given"<<endl;
         exit(EXIT_FAILURE);
     }
+    
     if(metro(trans_prob(init,fin))) accepted++;
     else fin = init;
     return fin;

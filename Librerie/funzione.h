@@ -27,6 +27,7 @@ public:
     virtual double der(vec a) const =0;
     virtual string whoamI() =0;
     
+    double operator()(vec x) {return eval(x);}
     vec radial(vec a)const;
     double GetParams(int i);
     void SetRadial(bool tof);
@@ -75,7 +76,7 @@ public:
 
 class hat: public funzione{
 public:
-    hat(double mu,double sigma){
+    hat(double sigma,double mu){
         n_par=2;
         par.set_size(n_par);
         par = {sigma,mu};
