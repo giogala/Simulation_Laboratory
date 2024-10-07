@@ -42,42 +42,12 @@ public:
     };
     virtual ~datablocking(){;};
     
-    void blocks(){
-        for(int i=0;i<_nblock;i++){
-            blk_av.zeros();
-            _state = increase(_state);
-            Progress_Bar(i+1,_nblock);
-            for(int j=0;j<_nprop;j++) {
-                averages(j);
-                print(i+1,j);
-            }
-        }
-    };
-    
-    void averages(int prop){
-        _av(prop) = blk_av(prop)/double(_nstep);
-        adjust(prop);
-        glb_av(prop) += _av(prop);
-        glb_2(prop) += _av(prop) * _av(prop);
-    };
-    
-    void print(int blk,int prop){
-        ofstream fout;
-        fout.open(_f[prop]+".txt",ios::app);
-        average  = _av(prop);
-        sum_average = glb_av(prop);
-        sum_ave2 = glb_2(prop);
-        fout << blk
-          << "\t" << average
-          << "\t" << sum_average/double(blk)
-          << "\t" << this->error(sum_average, sum_ave2, blk) << endl;
-        fout.close();
-    };
-    
-    double error(double acc, double acc2, int blk){
-        if(blk <= 1) return 0.0;
-        else return sqrt( fabs(acc2/double(blk) - pow( acc/double(blk) ,2) )/double(blk) );
-    };
+    void blocks(bool prt);
+    void averages(int prop);
+    virtual double print(int blk,int prop,bool prt);
+    double error(double acc, double acc2, int blk);
+    void reset();
+    int N_blk();
 
     virtual vec increase(vec pos) =0;
     virtual void adjust(int prop) =0;
@@ -109,21 +79,13 @@ public:
             ofstream fout;
             _f[i]=_f[i]+"_"+add;
             fout.open(_f[i]+".txt");
-            fout<<"BLOCK\tACTUAL_P\tP_AVE\tERROR"<<endl;
+            fout<<"BLOCK\tACTUAL_V\tV_AVE\tERROR"<<endl;
             fout.close();
         }
         _state = pos;
     };
-    vec increase(vec pos){
-        for(int k=0;k<_nstep;k++){
-            pos = _metro.move(pos);
-            blk_av(0) += sqrt(dot(pos,pos));
-        }
-        return pos;
-    };
-    void adjust(int prop){
-        if(prop==0)_metro.adjust();
-    };
+    vec increase(vec pos);
+    void adjust(int prop);
 private:
     metropolis& _metro;
 };
@@ -134,25 +96,52 @@ public:
         for(int i=0;i<_nprop;i++){
             ofstream fout;
             fout.open(_f[i]+".txt");
-            fout<<"BLOCK\tACTUAL_P\tP_AVE\tERROR"<<endl;
+            fout<<"BLOCK\tACTUAL_V\tV_AVE\tERROR"<<endl;
             fout.close();
         }
         _state = pos;
     };
-    vec increase(vec pos){
-        for(int k=0;k<_nstep;k++){
-            pos = _metro.move(pos);
-            blk_av(0) += _metro.GetDistr().der(pos);
-        }
-        return pos;
-    };
-    void adjust(int prop){
-        if(prop==0)_metro.adjust();
-    };
+    vec increase(vec pos);
+    void adjust(int prop);
+    vec pos();
+    metropolis& GetMetro();
+    
 private:
     metropolis& _metro;
 };
+    
+    
 
+class annealing: public datablocking{
+public:
+    annealing(int L, int O, int p, int dim,double div,string* file, energy& ener,metropolis& metro):datablocking(L,O,p,dim,file),_ener(ener),_metro(metro){
+        for(int i=0;i<_nprop;i++){
+            ofstream fout;
+            fout.open(_f[i]+".txt");
+            if(i==0) fout<<"TEMP\tSIGMA\tMU\tENERGY"<<endl;
+            else fout<<"BLOCK\tACTUAL_V\tV_AVE\tERROR"<<endl;
+            fout.close();
+        }
+        _div = div;
+        _t = _metro.GetDistr().GetParams(0);
+        
+        for (int i=0;i<_dim;i++) _state(i) = _ener.GetMetro().GetDistr().GetParams(i);
+        _min.resize(dim);
+        _min = _state;
+        _ener.blocks(false);
+        _best = _ener.print(_ener.N_blk(),0,false);
+    };
+    double print(int blk,int prop,bool prt)override;
+    vec increase(vec pos)override;
+    void adjust(int prop)override;
+    
+private:
+    vec _min;
+    double _best;
+    energy& _ener;
+    metropolis& _metro;
+    double _t, _div;
+};
 
 
 #endif /* datablocking_h */

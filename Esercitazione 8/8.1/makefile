@@ -3,7 +3,7 @@ TARGET = main
 
 # Directory dei sorgenti e delle librerie
 SRC_DIR = .
-LIB_DIR = ../Librerie
+LIB_DIR = ../../Librerie
 
 # File sorgenti
 SRC_FILES = $(SRC_DIR)/main.cpp
@@ -34,4 +34,3 @@ clean:
 	rm -f $(OBJ_FILES) $(TARGET)
 
 .PHONY: all clean
-

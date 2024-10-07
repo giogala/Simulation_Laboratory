@@ -10,7 +10,6 @@ _/    _/  _/_/_/  _/_/_/_/ email: Davide.Galli@unimi.it
 
 #include <iostream>
 #include <fstream>
-#include <string>
 #include <cmath>
 #include <cstdlib>
 #include "random.h"
@@ -18,57 +17,31 @@ _/    _/  _/_/_/  _/_/_/_/ email: Davide.Galli@unimi.it
 using namespace std;
 
 Random :: Random(){}
-// Default constructor, does not perform any action
 
 Random :: ~Random(){}
-// Default destructor, does not perform any action
 
 void Random :: SaveSeed(){
-   // This function saves the current state of the random number generator to a file "seed.out"
    ofstream WriteSeed;
-   WriteSeed.open("seed.out");
+   WriteSeed.open("../OUTPUT/seed.out");
    if (WriteSeed.is_open()){
-      WriteSeed << "RANDOMSEED	" << l1 << " " << l2 << " " << l3 << " " << l4 << endl;;
+      WriteSeed << l1 << " " << l2 << " " << l3 << " " << l4 << endl;;
    } else cerr << "PROBLEM: Unable to open random.out" << endl;
   WriteSeed.close();
   return;
 }
 
 double Random :: Gauss(double mean, double sigma) {
-   // This function generates a random number from a Gaussian distribution with given mean and sigma
    double s=Rannyu();
    double t=Rannyu();
    double x=sqrt(-2.*log(1.-s))*cos(2.*M_PI*t);
    return mean + x * sigma;
 }
 
-double Random :: Exp(double lambda) {
-    // This function generates a random number from a Exponential distribution with given decadiment length
-    double p=Rannyu();
-    return (-log(1-p))/lambda;
-}
-
-double Random :: CauLor(double mean, double gamma) {
-    // This function generates a random number from a Cauchy Lorentz distribution with given mean and gamma
-    double x=Rannyu();
-    return mean+gamma*tan(4*atan(1)*(x-0.5));
-}
-
 double Random :: Rannyu(double min, double max){
-   // This function generates a random number in the range [min, max)
    return min+(max-min)*Rannyu();
-}
-int Random :: Ranbit(){
-    // This function returns 0 or 1 randomly
-    return (int)(Rannyu()+0.5);
-}
-int Random :: Ranint(int min, int max){
-    // This function returns a random integer in the range [min, max)
-    return (int)Rannyu((double)min,(double)max);
 }
 
 double Random :: Rannyu(void){
-  // This function generates a random number in the range [0,1)
   const double twom12=0.000244140625;
   int i1,i2,i3,i4;
   double r;
@@ -89,7 +62,6 @@ double Random :: Rannyu(void){
 }
 
 void Random :: SetRandom(int * s, int p1, int p2){
-  // This function sets the seed and parameters of the random number generator
   m1 = 502;
   m2 = 1521;
   m3 = 4071;
@@ -105,29 +77,28 @@ void Random :: SetRandom(int * s, int p1, int p2){
 
   return;
 }
-void Random :: SetRandom(std::string f1,std::string f2){
-    //This function implement the augmented period for the rng
+
+void Random :: initRnd(string dir) {
     int seed[4];
     int p1, p2;
-    ifstream Primes(f1);
+    ifstream Primes(dir+"Primes");
     if (Primes.is_open()){
-       Primes >> p1 >> p2 ;
+        Primes >> p1 >> p2 ;
     } else cerr << "PROBLEM: Unable to open Primes" << endl;
     Primes.close();
-
-    ifstream input(f2);
+    
+    ifstream input(dir+"seed.in");
     string property;
     if (input.is_open()){
-       while ( !input.eof() ){
-          input >> property;
-          if( property == "RANDOMSEED" ){
-             input >> seed[0] >> seed[1] >> seed[2] >> seed[3];
-             SetRandom(seed,p1,p2);
-          }
-       }
-       input.close();
+        while ( !input.eof() ){
+            input >> property;
+            if( property == "RANDOMSEED" ){
+            input >> seed[0] >> seed[1] >> seed[2] >> seed[3];
+            SetRandom(seed,p1,p2);
+            }
+        }
+        input.close();
     } else cerr << "PROBLEM: Unable to open seed.in" << endl;
-    return;
 }
 
 /****************************************************************

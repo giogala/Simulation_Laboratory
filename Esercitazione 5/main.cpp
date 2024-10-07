@@ -43,7 +43,7 @@ int main (int argc, char** argv) {
     metropolis ortem(rtsid,type[0],"../Librerie/Random Generator");
     prova ssy(L,O,1,3,type,ortem,pos);
     
-    ssy.blocks();
+    ssy.blocks(true);
     cout<<endl;
     
     return 0;
