@@ -24,13 +24,19 @@ int main (int argc, char** argv) {
     }
     int N = SetProp("input.txt","NELEM");                   //Numero di elementi
     int p = SetProp("input.txt","NPOINTS");
-    population test(N,"../../Librerie/Random Generator/");
+    int i = SetProp("input.txt","PRINT");
+    Random ran;
+    ran.initRnd("../../Librerie/Random Generator/");
+    population test(N,ran);
     //if(argv[1]=="circle") test.Circle(p);
     test.Circle(p);
-    test.Spread();
-    cout<<test.Check()<<endl;
+    test.Xover(0,i);
+    test.Check();
+    
+    test.Sort();
+    test.L2();
     test.Print();
-    test.Print(1);
+    
     return 0;
 }
 

@@ -12,6 +12,7 @@
 #include <armadillo>
 #include <stdio.h>
 #include <vector>
+#include <algorithm>
 #include "library.h"
 #include "random.h"
 
@@ -34,6 +35,7 @@ public:
     void Init(string name,int i,vec x);
     int Id();
     vec Pos()const;
+    int Search(vector <gene> dad);
     
 protected:
     string _name;
@@ -44,8 +46,7 @@ protected:
 class element{
 public:
     element(){;};
-    element(int dim,Random& ran){
-        _rnd = ran;
+    element(int dim){
         gene x;
         _dim = dim;
         for(int i=0;i<dim;i++) {
@@ -53,8 +54,7 @@ public:
             _sum += (i + 1);
         }
     };
-    element(gene* dna,int dim,string rnd_dir){
-        _rnd.initRnd(rnd_dir);
+    element(gene* dna,int dim){
         _dim = dim;
         for(int i=0;i<dim;i++) {
             _dna.push_back(dna[i]);
@@ -75,13 +75,10 @@ public:
     vector <gene> Cut(vector <gene> a,int i, int j=-1);
     void Rebuild(vector <gene> r,int i = 1);
     void Shift(int n, int m, int i); // +n shift of m contiguos genes from i-th position on
-    void RndSwap(); // randomic swap of two genes
-    void RndSwap(int m); // randomic swap of two m-genes-long fragments
+    void Swap(int i,int j,int m=1); //swap of two m-genes-long fragments
     void Inv(int i, int j);
-    void RndInv();
     
 protected:
-    Random _rnd;
     vector <gene> _dna;
     int _dim;
     int _sum;
@@ -90,12 +87,12 @@ protected:
 
 class population{
 public:
-    population(int N,string rnd_dir){
-        _rnd.initRnd(rnd_dir);
+    population(int N,Random& ran){
+        _rnd = ran;
         _n = N;
     }
-    population(element pop,int N,string rnd_dir){
-        _rnd.initRnd(rnd_dir);
+    population(element pop,int N,Random& ran){
+        _rnd = ran;
         _n = N;
         for(int i=0;i<N;i++) _pop.push_back(pop);
     };
@@ -107,12 +104,15 @@ public:
     element& RanEl();
     void Circle(int length);
     void Spread();
-    int Check();
+    void Check();
+    void RndSwap(int k,int m=1); // randomic swap of two m-genes-long fragments of the k-th element
+    void RndInv(int k);
     void Xover(int i, int j);
-    int Search(gene x, vector <gene> dad);
-    void Sort(vector <gene> guy, vector <gene> dad);
+    //int Search(gene& x, vector <gene> dad);
+    void Sort(vector <gene>& guy, vector <gene>& dad);
     void Sort();
     void Print(int i=0);
+    void L2(int i=0);
     
 protected:
     Random _rnd;
