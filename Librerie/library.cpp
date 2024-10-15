@@ -38,7 +38,21 @@ double SetProp(string file,string prop) {
     } else cerr<<"Can't open "<<file<<endl;
     fin.close();
     return r;
-}
+};
+string SetType(string file,string prop){
+    ifstream fin(file);
+    string input;
+    string r;
+    
+    if(fin.is_open()){
+        while(!fin.eof()){
+            fin >> input;
+            if( input == prop ) fin >> r;
+        }
+    } else cerr<<"Can't open "<<file<<endl;
+    fin.close();
+    return r;
+};
 int fact(int i){
     if (i == 1) return 1;
     else return i*fact(i-1);

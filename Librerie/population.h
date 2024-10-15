@@ -74,6 +74,7 @@ public:
     vector <gene> Cut(int i, int j=-1);
     vector <gene> Cut(vector <gene> a,int i, int j=-1);
     void Rebuild(vector <gene> r,int i = 1);
+    void Rebuild(vector <gene> zip,vector <gene> r,int i = 1);
     void Shift(int n, int m, int i); // +n shift of m contiguos genes from i-th position on
     void Swap(int i,int j,int m=1); //swap of two m-genes-long fragments
     void Inv(int i, int j);
@@ -87,11 +88,13 @@ protected:
 
 class population{
 public:
-    population(int N,Random& ran){
+    population(int N,Random& ran,string outd){
+        _out = outd;
         _rnd = ran;
         _n = N;
     }
-    population(element pop,int N,Random& ran){
+    population(element pop,int N,Random& ran,string outd){
+        _out = outd;
         _rnd = ran;
         _n = N;
         for(int i=0;i<N;i++) _pop.push_back(pop);
@@ -102,21 +105,26 @@ public:
     element& operator()() {return RanEl();};
     element& GetEl(int i);
     element& RanEl();
+    int Select();
     void Circle(int length);
+    void Square(int length);
     void Spread();
     void Check();
     void RndSwap(int k,int m=1); // randomic swap of two m-genes-long fragments of the k-th element
     void RndInv(int k);
+    void RndShift(int k);
     void Xover(int i, int j);
-    //int Search(gene& x, vector <gene> dad);
+    void Mutate();
+    void Evolve(int n);
     void Sort(vector <gene>& guy, vector <gene>& dad);
     void Sort();
-    void Print(int i=0);
+    void Print(int j,int i=0);
     void L2(int i=0);
     
 protected:
     Random _rnd;
     vector <element> _pop;
+    string _out;
     int _n;
 };
 #endif /* population.h */

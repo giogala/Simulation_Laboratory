@@ -9,6 +9,7 @@ using namespace std;
 
 void Progress_Bar(int progress, int total, int bar_width = 50);
 double SetProp(string file,string prop);
+string SetType(string file,string prop);
 int fact(int i);
 
 #endif /* library.h */

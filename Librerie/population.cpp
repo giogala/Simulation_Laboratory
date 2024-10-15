@@ -88,6 +88,9 @@ vector <gene> element::Cut(vector <gene> a,int i, int j){
 void element::Rebuild(vector <gene> r,int i){
     for(int k=i;k<_dim;k++) _dna[k] = r[k-i];
 };
+void element::Rebuild(vector <gene> zip,vector <gene> r,int i){
+    for(int k=i;k<zip.size();k++) zip[k] = r[k-i];
+};
 void element::Shift(int n, int m, int i){
     i--;
     vector <gene> rap = Cut(1);
@@ -121,7 +124,10 @@ element& population::GetEl(int i){
     return _pop[i];
 };
 element& population::RanEl(){
-    return _pop[int(_rnd.Rannyu() * _n)];
+    return _pop[int(pow(_rnd.Rannyu(),5) * _n)];
+};
+int population::Select(){
+    return int(pow(_rnd.Rannyu(),5) * _n);
 };
 void population::Circle(int length){
     element adamo(length);
@@ -134,9 +140,21 @@ void population::Circle(int length){
     for(int j=0;j<_n;j++) _pop.push_back(adamo);
     Spread();
 };
+void population::Square(int length){
+    element adamo(length);
+    for(int i=0;i<length;i++){
+        double x = _rnd.Rannyu();
+        double y = _rnd.Rannyu();
+        vec pos = {x,y};
+        adamo(i).Placing(pos);
+        adamo(i).SetId(i+1);
+    }
+    for(int j=0;j<_n;j++) _pop.push_back(adamo);
+    Spread();
+};
 void population::Spread(){
     for(int j=1;j<_n;j++){
-        for(int k=0;k<4;k++){
+        for(int k=0;k<3;k++){
             RndSwap(j);
             RndSwap(j,2);
             RndSwap(j,4);
@@ -165,33 +183,64 @@ void population::RndInv(int k){
     }while( i >= j );
     _pop[k].Inv(i,j);
 };
+void population::RndShift(int k){
+    int m = _rnd.Rannyu(1, _pop[k].N()-1);
+    int n = _rnd.Rannyu(1, _pop[k].N()-m);
+    int i = _rnd.Rannyu(1,_pop[k].N());
+    _pop[k].Shift(n,m,i);
+};
 void population::Xover(int i, int j){
-    vector <gene> uno = _pop[i].Cut(1);
-    vector <gene> due = _pop[j].Cut(1);
-    int k = int(_rnd.Rannyu() * (_pop[i].N() - 1));
+    int l,m;
+    do{
+        l = Select();
+        m = Select();
+    } while( l == m);
+    
+    vector <gene> uno = _pop[l].Cut(1);
+    vector <gene> due = _pop[m].Cut(1);
     int d = _pop[i].N()-1;
+    int k = int(_rnd.Rannyu() * d);
     vector <gene> c1 = _pop[i].Cut(uno,k,d);
     vector <gene> c2 = _pop[j].Cut(due,k,d);
     
     Sort(c1,due);
     Sort(c2,uno);
     
-    _pop[i].Rebuild(c1,k+1);
-    _pop[j].Rebuild(c2,k+1);
+    _pop[l].Rebuild(uno,c1,k);
+    _pop[m].Rebuild(due,c2,k);
+    
+    _pop[i].Rebuild(uno);
+    _pop[j].Rebuild(due);
 };
 
+void population::Mutate(){
+    for(int i=0;i<_n;i++){
+        int m = _rnd.Rannyu() * _pop[i].N();
+        double p = _rnd.Rannyu();
+        if(p < 0.1) RndSwap(i);
+        else if(p < 0.2) RndSwap(i,m/2);
+        else if(p < 0.3) RndInv(i);
+        else if(p < 0.4) RndShift(i);
+    }
+};
+void population::Evolve(int n){
+    Sort();
+    for(int k=n;k<_n-1;k+=2){
+        Xover(k,k+1);
+    }
+};
 void population::Sort(vector <gene>& guy, vector <gene>& dad){
-    sort(guy.begin(),guy.end(),[dad](gene& a, gene& b){
+    std::sort(guy.begin(),guy.end(),[dad](gene& a, gene& b){
         return a.Search(dad) < b.Search(dad);
     });
 };
 void population::Sort(){
-    sort(_pop.begin(),_pop.end(),[](const element& a, const element& b){
+    std::sort(_pop.begin(),_pop.end(),[](const element& a, const element& b){
         return a.L2() < b.L2();
     });
 };
-void population::Print(int i){
-    ofstream fout("element_"+to_string(i)+".txt");
+void population::Print(int j,int i){
+    ofstream fout(_out+"PATH/element_"+to_string(j)+"_"+to_string(i)+".txt");
     for(int j=0;j<_pop[i].N();j++){
         fout<<_pop[i](j).Id();
         for(int k=0;k<_pop[i](j).Pos().n_elem;k++){
@@ -202,7 +251,7 @@ void population::Print(int i){
     fout.close();
 };
 void population::L2(int i){
-    ofstream fout("l2_gen"+to_string(i)+".txt");
+    ofstream fout(_out+"LOSS/l2_gen"+to_string(i)+".txt");
     for(int j=0;j<_n;j++){
         fout<<j<<"\t"<<_pop[j].L2()<<endl;
     }

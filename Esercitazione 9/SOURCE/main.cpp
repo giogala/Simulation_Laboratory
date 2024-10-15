@@ -24,18 +24,25 @@ int main (int argc, char** argv) {
     }
     int N = SetProp("input.txt","NELEM");                   //Numero di elementi
     int p = SetProp("input.txt","NPOINTS");
-    int i = SetProp("input.txt","PRINT");
+    int f = SetProp("input.txt","GEN");
+    string t = SetType("input.txt","TYPE");
     Random ran;
     ran.initRnd("../../Librerie/Random Generator/");
-    population test(N,ran);
-    //if(argv[1]=="circle") test.Circle(p);
-    test.Circle(p);
-    test.Xover(0,i);
+    population test(N,ran,"../"+t+"/");
+    if(t=="CIRCLE") test.Circle(p);
+    if(t=="SQUARE") test.Square(p);
     test.Check();
     
-    test.Sort();
-    test.L2();
-    test.Print();
+    for(int k=0;k<f;k++){
+        test.Mutate();
+        test.Evolve(50);
+        
+        Progress_Bar(k,f);
+        test.Check();
+        test.Sort();
+        test.Print(k);
+        test.L2(k);
+    }
     
     return 0;
 }
