@@ -105,7 +105,7 @@ public:
     element& operator()() {return RanEl();};
     element& GetEl(int i);
     element& RanEl();
-    int Select();
+    
     void Circle(int length);
     void Square(int length);
     void Spread();
@@ -114,8 +114,9 @@ public:
     void RndInv(int k);
     void RndShift(int k);
     void Xover(int i, int j);
+    void Select();
     void Mutate();
-    void Evolve(int n);
+    void Evolve(double n);
     void Sort(vector <gene>& guy, vector <gene>& dad);
     void Sort();
     void Print(int j,int i=0);

@@ -124,10 +124,7 @@ element& population::GetEl(int i){
     return _pop[i];
 };
 element& population::RanEl(){
-    return _pop[int(pow(_rnd.Rannyu(),5) * _n)];
-};
-int population::Select(){
-    return int(pow(_rnd.Rannyu(),5) * _n);
+    return _pop[int(pow(_rnd.Rannyu(),7) * _n)];
 };
 void population::Circle(int length){
     element adamo(length);
@@ -157,8 +154,8 @@ void population::Spread(){
         for(int k=0;k<3;k++){
             RndSwap(j);
             RndSwap(j,2);
-            RndSwap(j,4);
             RndInv(j);
+            RndShift(j);
         }
     }
 };
@@ -190,14 +187,14 @@ void population::RndShift(int k){
     _pop[k].Shift(n,m,i);
 };
 void population::Xover(int i, int j){
-    int l,m;
+    /*int l,m;
     do{
         l = Select();
         m = Select();
-    } while( l == m);
+    } while( l == m);*/
     
-    vector <gene> uno = _pop[l].Cut(1);
-    vector <gene> due = _pop[m].Cut(1);
+    vector <gene> uno = _pop[i].Cut(1);
+    vector <gene> due = _pop[j].Cut(1);
     int d = _pop[i].N()-1;
     int k = int(_rnd.Rannyu() * d);
     vector <gene> c1 = _pop[i].Cut(uno,k,d);
@@ -206,27 +203,33 @@ void population::Xover(int i, int j){
     Sort(c1,due);
     Sort(c2,uno);
     
-    _pop[l].Rebuild(uno,c1,k);
-    _pop[m].Rebuild(due,c2,k);
+    _pop[i].Rebuild(c1,k+1);
+    _pop[j].Rebuild(c2,k+1);
     
-    _pop[i].Rebuild(uno);
-    _pop[j].Rebuild(due);
+    //_pop[i].Rebuild(uno);
+    //_pop[j].Rebuild(due);
 };
-
+void population::Select(){
+    Sort();
+    for(int i=1;i<_n;i++)_pop[i]=RanEl();
+};
 void population::Mutate(){
     for(int i=0;i<_n;i++){
-        int m = _rnd.Rannyu() * _pop[i].N();
         double p = _rnd.Rannyu();
-        if(p < 0.1) RndSwap(i);
-        else if(p < 0.2) RndSwap(i,m/2);
-        else if(p < 0.3) RndInv(i);
-        else if(p < 0.4) RndShift(i);
+        //if(p < 0.001) _pop[i].Inv(1,_pop[i].N());
+        //p = _rnd.Rannyu();
+        if(p < 0.08) RndSwap(i);
+        p = _rnd.Rannyu();
+        if(p < 0.08) RndSwap(i,_rnd.Rannyu() * _pop[i].N()/2);
+        p = _rnd.Rannyu();
+        if(p < 0.08) RndInv(i);
+        p = _rnd.Rannyu();
+        if(p < 0.06) RndShift(i);
     }
 };
-void population::Evolve(int n){
-    Sort();
-    for(int k=n;k<_n-1;k+=2){
-        Xover(k,k+1);
+void population::Evolve(double n){
+    for(int k=0;k<_n;k++){
+        if(_rnd.Rannyu() < n) Xover(k,int(_rnd.Rannyu()*_n));
     }
 };
 void population::Sort(vector <gene>& guy, vector <gene>& dad){
