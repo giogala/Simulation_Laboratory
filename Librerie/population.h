@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <vector>
 #include <algorithm>
+#include "mpi.h"
 #include "library.h"
 #include "random.h"
 
@@ -36,6 +37,7 @@ public:
     int Id();
     vec Pos()const;
     int Search(vector <gene> dad);
+    int Search(vec labs);
     
 protected:
     string _name;
@@ -75,6 +77,7 @@ public:
     vector <gene> Cut(vector <gene> a,int i, int j=-1);
     void Rebuild(vector <gene> r,int i = 1);
     void Rebuild(vector <gene> zip,vector <gene> r,int i = 1);
+    void Rebuild(vec labs);
     void Shift(int n, int m, int i); // +n shift of m contiguos genes from i-th position on
     void Swap(int i,int j,int m=1); //swap of two m-genes-long fragments
     void Inv(int i, int j);
@@ -88,15 +91,25 @@ protected:
 
 class population{
 public:
-    population(int N,Random& ran,string outd){
+    population(string inp,Random& ran,string outd){
         _out = outd;
         _rnd = ran;
-        _n = N;
+        _n = SetProp(inp,"NELEM");
+        p_sw = SetProp(inp,"SWAP");
+        p_swm = SetProp(inp,"SWAPM");
+        p_inv = SetProp(inp,"INV");
+        p_shf = SetProp(inp,"SHIFT");
+        p_x = SetProp(inp,"XOVER");
     }
     population(element pop,int N,Random& ran,string outd){
         _out = outd;
         _rnd = ran;
         _n = N;
+        p_sw = 0.05;
+        p_swm = 0.05;
+        p_inv = 0.05;
+        p_shf = 0.05;
+        p_x = 0.8;
         for(int i=0;i<N;i++) _pop.push_back(pop);
     };
     ~population(){;};
@@ -105,9 +118,11 @@ public:
     element& operator()() {return RanEl();};
     element& GetEl(int i);
     element& RanEl();
+    Random& Rnd();
     
     void Circle(int length);
     void Square(int length);
+    void File(string file);
     void Spread();
     void Check();
     void RndSwap(int k,int m=1); // randomic swap of two m-genes-long fragments of the k-th element
@@ -116,7 +131,8 @@ public:
     void Xover(int i, int j);
     void Select();
     void Mutate();
-    void Evolve(double n);
+    void Evolve();
+    void Migration(int rank,int cores,int n=1);
     void Sort(vector <gene>& guy, vector <gene>& dad);
     void Sort();
     void Print(int j,int i=0);
@@ -127,6 +143,11 @@ protected:
     vector <element> _pop;
     string _out;
     int _n;
+    double p_sw;
+    double p_swm;
+    double p_inv;
+    double p_shf;
+    double p_x;
 };
 #endif /* population.h */
 

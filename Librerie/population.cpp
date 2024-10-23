@@ -39,6 +39,14 @@ int gene::Search(vector <gene> dad){
     }
     return index;
 };
+int gene::Search(vec dad){
+    int index = -1;
+    for(int i=0;i<dad.size();i++){
+        if(_label == int(dad(i))) index = i;
+    }
+    return index;
+};
+
 
 
 gene& element::GetG(int i){
@@ -72,7 +80,6 @@ void element::SetL2(){
 int element::PBC(int i,int dim){
     return (i % dim + dim) % dim;
 };
-
 vector <gene> element::Cut(int i, int j){
     if(j == -1) j = _dim;
     vector <gene> app(j - i);
@@ -90,6 +97,15 @@ void element::Rebuild(vector <gene> r,int i){
 };
 void element::Rebuild(vector <gene> zip,vector <gene> r,int i){
     for(int k=i;k<zip.size();k++) zip[k] = r[k-i];
+};
+void element::Rebuild(vec labs){
+    if(labs.size() != _dim) cerr<<"Wrong indexes' vector size"<<endl;
+    else{
+        sort(_dna.begin(),_dna.end(),[labs](gene&a, gene& b){
+            return a.Search(labs) < b.Search(labs);
+        });
+    }
+    Check();
 };
 void element::Shift(int n, int m, int i){
     i--;
@@ -120,11 +136,16 @@ void element::Inv(int i, int j){
     Rebuild(rap);
 };
 
+
+
 element& population::GetEl(int i){
     return _pop[i];
 };
 element& population::RanEl(){
     return _pop[int(pow(_rnd.Rannyu(),7) * _n)];
+};
+Random& population::Rnd(){
+    return _rnd;
 };
 void population::Circle(int length){
     element adamo(length);
@@ -148,6 +169,27 @@ void population::Square(int length){
     }
     for(int j=0;j<_n;j++) _pop.push_back(adamo);
     Spread();
+};
+void population::File(string file){
+    ifstream fin(file);
+    string line;
+    int length = 0;
+    while(getline(fin,line)){
+        length++;
+    }
+    fin.close();
+    fin.open(file);
+    element adamo(length);
+    double x,y;
+    for(int i=0;i<length;i++){
+        fin >> x >> y;
+        vec pos = {x,y};
+        adamo(i).Placing(pos);
+        adamo(i).SetId(i+1);
+    }
+    for(int j=0;j<_n;j++) _pop.push_back(adamo);
+    Spread();
+    
 };
 void population::Spread(){
     for(int j=1;j<_n;j++){
@@ -187,12 +229,6 @@ void population::RndShift(int k){
     _pop[k].Shift(n,m,i);
 };
 void population::Xover(int i, int j){
-    /*int l,m;
-    do{
-        l = Select();
-        m = Select();
-    } while( l == m);*/
-    
     vector <gene> uno = _pop[i].Cut(1);
     vector <gene> due = _pop[j].Cut(1);
     int d = _pop[i].N()-1;
@@ -205,33 +241,49 @@ void population::Xover(int i, int j){
     
     _pop[i].Rebuild(c1,k+1);
     _pop[j].Rebuild(c2,k+1);
-    
-    //_pop[i].Rebuild(uno);
-    //_pop[j].Rebuild(due);
 };
 void population::Select(){
     Sort();
-    for(int i=1;i<_n;i++)_pop[i]=RanEl();
+    vector <element> app;
+    for(int i=0;i<_n;i++)app.push_back(RanEl());
+    _pop = app;
 };
 void population::Mutate(){
     for(int i=0;i<_n;i++){
         double p = _rnd.Rannyu();
-        //if(p < 0.001) _pop[i].Inv(1,_pop[i].N());
-        //p = _rnd.Rannyu();
-        if(p < 0.08) RndSwap(i);
+        if(p < p_sw) RndSwap(i);
         p = _rnd.Rannyu();
-        if(p < 0.08) RndSwap(i,_rnd.Rannyu() * _pop[i].N()/2);
+        if(p < p_swm) RndSwap(i,_rnd.Rannyu() * _pop[i].N()/2);
         p = _rnd.Rannyu();
-        if(p < 0.08) RndInv(i);
+        if(p < p_inv) RndInv(i);
         p = _rnd.Rannyu();
-        if(p < 0.06) RndShift(i);
+        if(p < p_shf) RndShift(i);
     }
 };
-void population::Evolve(double n){
+void population::Evolve(){
     for(int k=0;k<_n;k++){
-        if(_rnd.Rannyu() < n) Xover(k,int(_rnd.Rannyu()*_n));
+        if(_rnd.Rannyu() < p_x) Xover(k,int(_rnd.Rannyu()*_n));
     }
 };
+void population::Migration(int rank, int cores, int n) {
+    
+    int dim = _pop[0].N();
+    mat sends(dim,n);
+    mat recvs(dim,cores*n);
+
+    for(int i=0;i<dim;i++) {
+        for(int j=0;j<n;j++) sends(i,j) = _pop[j](i).Id();
+    }
+    MPI_Gather(sends.memptr(), dim * n, MPI_DOUBLE, recvs.memptr(), dim * n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    
+    if(rank == 0) recvs = shuffle(recvs,1);
+
+    MPI_Bcast(recvs.memptr(), dim * cores * n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    for(int j=0;j<n;j++){
+        vec a = recvs.col(rank + j);
+        _pop[j].Rebuild(a);
+    }
+}
 void population::Sort(vector <gene>& guy, vector <gene>& dad){
     std::sort(guy.begin(),guy.end(),[dad](gene& a, gene& b){
         return a.Search(dad) < b.Search(dad);

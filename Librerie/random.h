@@ -30,6 +30,7 @@ public:
     double Rannyu(double min, double max);
     double Gauss(double mean, double sigma);
     void initRnd(std::string dir);
+    void initParallel(std::string dir,int rank);
 };
 
 #endif // __Random__
