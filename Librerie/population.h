@@ -2,7 +2,7 @@
 //  population.h
 //
 //
-//  Created by Giovanni Galafassi on 09/05/24.
+//  Created by Giovanni Galafassi on 05/10/24.
 //
 #define _USE_MATH_DEFINES
 #ifndef __population_h_
@@ -135,8 +135,9 @@ public:
     void Migration(int rank,int cores,int n=1);
     void Sort(vector <gene>& guy, vector <gene>& dad);
     void Sort();
-    void Print(int j,int i=0);
-    void L2(int i=0);
+    void PreL2(int mig);
+    void Print(int mig,int j,int i=0);
+    void L2(int mig,int i=0);
     
 protected:
     Random _rnd;

@@ -1,8 +1,8 @@
 //
-//  metropolis.hpp
+//  population.cpp
 //
 //
-//  Created by Giovanni Galafassi on 08/08/24.
+//  Created by Giovanni Galafassi on 05/10/24.
 //
 #define _USE_MATH_DEFINES
 
@@ -283,7 +283,7 @@ void population::Migration(int rank, int cores, int n) {
         vec a = recvs.col(rank + j);
         _pop[j].Rebuild(a);
     }
-}
+};
 void population::Sort(vector <gene>& guy, vector <gene>& dad){
     std::sort(guy.begin(),guy.end(),[dad](gene& a, gene& b){
         return a.Search(dad) < b.Search(dad);
@@ -294,8 +294,14 @@ void population::Sort(){
         return a.L2() < b.L2();
     });
 };
-void population::Print(int j,int i){
-    ofstream fout(_out+"PATH/element_"+to_string(j)+"_"+to_string(i)+".txt");
+void population::PreL2(int mig){
+    ofstream fout(_out+"loss_"+to_string(mig)+".txt");
+    fout<<"Gen\tBest\tMean\tErr"<<endl;
+    fout.close();
+};
+
+void population::Print(int mig,int j,int i){
+    ofstream fout(_out+"PATH/element_"+to_string(j)+"_"+to_string(i)+"_"+to_string(mig)+".txt");
     for(int j=0;j<_pop[i].N();j++){
         fout<<_pop[i](j).Id();
         for(int k=0;k<_pop[i](j).Pos().n_elem;k++){
@@ -305,10 +311,17 @@ void population::Print(int j,int i){
     }
     fout.close();
 };
-void population::L2(int i){
-    ofstream fout(_out+"LOSS/l2_gen"+to_string(i)+".txt");
-    for(int j=0;j<_n;j++){
-        fout<<j<<"\t"<<_pop[j].L2()<<endl;
+void population::L2(int mig, int i){
+    ofstream fout(_out+"loss_"+to_string(mig)+".txt",ios::app);
+    double mean = 0;
+    double var = 0;
+    for(int j=0;j<50;j++){
+        mean += _pop[j].L2();
+        var += pow(_pop[j].L2(),2);
     }
+    mean /= 50.;
+    var /= 50.;
+    var = sqrt(abs(var - mean*mean));
+    fout<<i<<"\t"<<_pop[0].L2()<<"\t"<<mean<<"\t"<<var<<endl;
     fout.close();
 };

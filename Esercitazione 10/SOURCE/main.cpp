@@ -6,6 +6,7 @@
 #include <cmath>
 #include <vector>
 #include <armadillo>
+#include <map>
 
 #include "../../Librerie/population.h"
 #include "../../Librerie/datablocking.h"
@@ -15,7 +16,7 @@
 
 using namespace std;
 using namespace arma;
-M_PI
+
 
 int main (int argc, char** argv) {
     int size, rank;
@@ -23,10 +24,11 @@ int main (int argc, char** argv) {
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     
-    int p = SetProp("input.txt","NPOINTS");
-    int f = SetProp("input.txt","GEN");
-    int a = SetProp("input.txt","MOVE");
-    int m = SetProp("input.txt","MIGR");
+    int p = SetProp("input.txt","NPOINTS");     // number of points, square or circle
+    int f = SetProp("input.txt","GEN");         // number of generations
+    int a = SetProp("input.txt","MOVE");        // migration every a genertions
+    int m = SetProp("input.txt","MIGR");        // migration of the m bests elements of the population
+    int nm = f/a - 1;                           // total number of migration
     string t = SetType("input.txt","TYPE");
     
     Random ran;
@@ -45,17 +47,20 @@ int main (int argc, char** argv) {
     }
     test.Rnd().initParallel("../../Librerie/Random Generator/",rank);
     test.Check();
+    if(rank == 0)test.PreL2(nm);
     
     for(int k=0;k<f;k++){
         test.Mutate();
         test.Evolve();
         test.Select();
-        
-        if(rank == 0)Progress_Bar(k,f);
+
         test.Check();
         test.Sort();
-        if(rank == 0)test.Print(k);
-        if(rank == 0)test.L2(k);
+        if(rank == 0){
+            test.Print(nm,k);
+            test.L2(nm,k);
+            Progress_Bar(k,f);
+        }
         if(k%a == 0) test.Migration(rank,size,m);
     }
     
