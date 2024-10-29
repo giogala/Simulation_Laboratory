@@ -5,26 +5,26 @@
 #include <fstream>
 #include <cmath>
 #include <vector>
-#include "../../Librerie/Random Generator/random.h"
-#include "../../Librerie/Random Generator/posizione.h"
+#include "../../Librerie/random.h"
+#include "../../Librerie/posizione.h"
+#include "../../Librerie/library.h"
 
 using namespace std;
 
 int main (int argc, char** argv) {
     if(argc<3){
-        cerr<<"Errore: uso del programma "<<argv[0]<<" <Numero_di_passi> <Numero_di_repliche> <Numero_blocchi_di_repliche"<<endl;
+        cerr<<"Errore: uso del programma "<<argv[0]<<" <Numero_di_passi> <Numero_di_repliche> <Numero_blocchi_di_repliche>"<<endl;
         return -1;
     }
     
     Random rnd;                                 //Imposto il generatore di numeri casuali
-    int seed[4]={5,2,3,4};
-    rnd.SetRandom(seed,5,100);
+    rnd.initRnd("../../Librerie/Random Generator/");
     
     //File di output
     ofstream fout("Data.txt");
     ofstream fout2("Data2.txt");
-    fout<<"$<R^2>_{RW}$ "<<"\t"<<"devstd"<<endl;
-    fout2<<"X"<<"\t"<<"Y"<<"\t"<<"Z"<<endl;
+    fout<<"Step\t$<R^2>_{RW}$\tdevstd"<<endl;
+    fout2<<"X\tY\tZ"<<endl;
     
     int N=atoi(argv[1]);                        //Numero di passi
     int M=atoi(argv[2]);                        //Numero di repliche
@@ -74,9 +74,11 @@ int main (int argc, char** argv) {
             t4+=r4/L;
             r2=0; r4=0;
         }
-        double e = sqrt((t4-t2*t2)/(L-1));      // il "/L" è dovuto al fatto che sto mediando su L blocchi
-        fout<<t2<<"\t"<<e<<endl;
+        double e = sqrt((t4-t2*t2)/(L-1));
+        if(i==0) e=0.;
+        fout<<i+1<<"\t"<<t2<<"\t"<<e<<endl;
         t2=0; t4=0;
+        Progress_Bar(i,N);
     }
     
     fout.close();

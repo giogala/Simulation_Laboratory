@@ -2,7 +2,8 @@
 #include <fstream>
 #include <cmath>
 #include <vector>
-#include "../../Librerie/Random Generator/random.h"
+#include "../../Librerie/random.h"
+#include "../../Librerie/library.h"
 
 using namespace std;
 
@@ -13,9 +14,7 @@ int main (int argc, char** argv) {
     }
     
     Random rnd;                                 //Imposto il generatore di numeri casuali
-    int seed[4]={5,2,3,4};
-    //rnd.SetRandom("../../Librerie/Random Generator/Primes","../../Librerie/Random Generator/seed.in");
-    rnd.SetRandom(seed,5,10);
+    rnd.initRnd("../../Librerie/Random Generator/");
 
     
     int N=atoi(argv[1]);                        //Numero di lanci casuali
@@ -64,8 +63,8 @@ int main (int argc, char** argv) {
             err= sqrt((-pow(t,2)+t2)/i);        //Calcolo dell'errore
             ers= sqrt((-pow(e,2)+e2)/i);
         }
-        fout<<t<<"\t"<<err<<endl;
-        fout2<<e<<"\t"<<ers<<endl;
+        fout<<i<<"\t"<<t<<"\t"<<err<<endl;
+        fout2<<i<<"\t"<<e<<"\t"<<ers<<endl;
         c=0; c2=0; d=0; d2=0;                   //resetto i contatori per passare al blocco successivo
         
         //parte 3
@@ -82,10 +81,12 @@ int main (int argc, char** argv) {
             chi2i+=pow(n[k]-T/100,2)*100/T;
             n[k]=0;
         }
-        fout3<<chi2i<<endl;
+        fout3<<i<<"\t"<<chi2i<<endl;
+        Progress_Bar(i,M);
     }
     fout.close();
     fout2.close();
+    fout3.close();
     return 0;
 }
 

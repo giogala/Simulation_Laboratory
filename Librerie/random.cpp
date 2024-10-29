@@ -36,9 +36,24 @@ double Random :: Gauss(double mean, double sigma) {
    double x=sqrt(-2.*log(1.-s))*cos(2.*M_PI*t);
    return mean + x * sigma;
 }
+double Random :: Exp(double lambda) {
+    double p=Rannyu();
+    return (-log(1-p))/lambda;
+}
+
+double Random :: CauLor(double mean, double gamma) {
+    double x=Rannyu();
+    return mean + gamma*tan(4.*atan(1.)*(x-0.5));
+}
 
 double Random :: Rannyu(double min, double max){
    return min+(max-min)*Rannyu();
+}
+int Random :: Ranbit(){
+    return (int)(Rannyu()+0.5);
+}
+int Random :: Ranint(int min, int max){
+    return (int)Rannyu((double)min,(double)max);
 }
 
 double Random :: Rannyu(void){

@@ -28,7 +28,11 @@ public:
     void SaveSeed();
     double Rannyu(void);
     double Rannyu(double min, double max);
+    int Ranbit();
+    int Ranint(int min, int max);
     double Gauss(double mean, double sigma);
+    double Exp(double lambda);
+    double CauLor(double mean, double gamma);
     void initRnd(std::string dir);
     void initParallel(std::string dir,int rank);
 };
