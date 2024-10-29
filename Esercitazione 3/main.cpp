@@ -5,8 +5,9 @@
 #include <fstream>
 #include <cmath>
 #include <vector>
-#include "../Librerie/Random Generator/random.h"
-#include "../Librerie/Random Generator/posizione.h"
+#include "../Librerie/random.h"
+#include "../Librerie/posizione.h"
+#include "../Librerie/library.h"
 
 using namespace std;
 
@@ -22,14 +23,13 @@ int main (int argc, char** argv) {
     }
     
     Random rnd;                                 //Imposto il generatore di numeri casuali
-    int seed[4]={5,2,3,4};
-    rnd.SetRandom(seed,5,100);
+    rnd.initRnd("../Librerie/Random Generator/");
     
     //File di output
     ofstream fout[4];
     for(int i=0;i<4;i++){
         fout[i].open("Data"+to_string(i)+".txt");
-        fout[i]<<"Price"<<"\t"<<"Error"<<endl;
+        fout[i]<<"Blocchi\tPrice\tError"<<endl;
     }
     
     int N=atoi(argv[1]);                        //Numero di passi
@@ -61,10 +61,10 @@ int main (int argc, char** argv) {
                 else{
                     double x=s0;
                     for(int l=0;l<N;l++){
-                        x+=(double)(r*T/N+v*rnd.Gauss(0.,1.)*sqrt(T/N));
+                        x+=(double)(r*T + v*rnd.Gauss(0.,1.)*sqrt(T*N));
                     }
-                    if(i==2)s[2]+=exp(-r*T)*max(0,x-K);
-                    if(i==3)s[3]+=exp(-r*T)*max(0,K-x);
+                    if(i==2)s[2]+=exp(-r*T)*max(0,x-K)/O;
+                    if(i==3)s[3]+=exp(-r*T)*max(0,K-x)/O;
                 }
             }
             s2[i]=s[i]*s[i];
@@ -72,9 +72,10 @@ int main (int argc, char** argv) {
             t2[i]=(t2[i]*k+s2[i])/(k+1);
             s2[i]=0; s[i]=0;
             
-            double e = sqrt((t2[i]-t[i]*t[i])/k);      // il "/L" è dovuto al fatto che sto mediando su L blocchi
+            double e = sqrt((t2[i]-t[i]*t[i])/k);
             if(k==0) e=0;
-            fout[i]<<t[i]<<"\t"<<e<<endl;
+            fout[i]<<k+1<<"\t"<<t[i]<<"\t"<<e<<endl;
+            Progress_Bar(k,L);
         }
         fout[i].close();
     }
