@@ -32,18 +32,18 @@ int main (int argc, char** argv) {
         fout[i]<<"Blocchi\tPrice\tError"<<endl;
     }
     
-    int N=atoi(argv[1]);                        //Numero di passi
+    int N=atoi(argv[1]);                        //Numero di passi discreti
     int M=atoi(argv[2]);                        //Numero di repliche
     int L=atoi(argv[3]);                        //Numero di blocchi in cui suddividerwe le M repliche
     int O=M/L;                                  //Numero di repliche per blocco
     
-    // Vettore con tutte le posizioni di tutte le repliche del RW inizializzate nell'origine
-    //vector <vector <double> > pos;
-    double s0=100.;
-    double K=100.;
-    double r=0.1;
-    double v=0.25;
-    double T=1.;
+
+    double s0=100.;                 // asset price
+    double K=100.;                  // strike price
+    double r=0.1;                   // risk-free interest rate
+    double v=0.25;                  // volatility
+    double T=1.;                    // delivery time
+    
     double s[4]={0,0,0,0};             //variabile locale nel blocco per il calcolo del valor medio
     double s2[4]={0,0,0,0};            //variabile locale nel blocco per il calcolo della varianza
     double t[4]={0,0,0,0};             //variabile globale per il calcolo del valor medio dei valori medi a i fissato
@@ -56,12 +56,14 @@ int main (int argc, char** argv) {
         for(int k=0;k<L;k++){
             //iterazione sulle repliche all'interno di un blocco
             for(int j=0;j<O;j++){
+                // Passo diretto
                 if(i==0) s[0]+=exp(-r*T)*max(0,s0*exp((r-v*v/2)*T+v*rnd.Gauss(0.,1.)*sqrt(T))-K)/O;
                 if(i==1) s[1]+=exp(-r*T)*max(0,K-s0*exp((r-v*v/2)*T+v*rnd.Gauss(0.,1.)*sqrt(T)))/O;
                 else{
+                    // N Passi discreti
                     double x=s0;
                     for(int l=0;l<N;l++){
-                        x+=(double)(r*T + v*rnd.Gauss(0.,1.)*sqrt(T*N));
+                        x=x*exp((r-v*v/2)*T/N + v*rnd.Gauss(0.,1.)*sqrt(T/N));
                     }
                     if(i==2)s[2]+=exp(-r*T)*max(0,x-K)/O;
                     if(i==3)s[3]+=exp(-r*T)*max(0,K-x)/O;

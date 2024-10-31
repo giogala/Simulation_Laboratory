@@ -33,14 +33,15 @@ int main (int argc, char** argv) {
     int L=atoi(argv[1]);                        //Numero di blocchi
     int O=atoi(argv[2]);                        //Numero di passi per blocco
     
-    metropolis metro(distr,type[0],"../Librerie/Random Generator");
+
+    metropolis metro(distr,type[0],"../Librerie/Random Generator/");
     prova sys(L,O,1,3,type,metro,pos);
     
-    sys.blocks();
+    sys.blocks(true);
     cout<<endl;
     
     type[0]= argv[3];
-    metropolis ortem(rtsid,type[0],"../Librerie/Random Generator");
+    metropolis ortem(rtsid,type[0],"../Librerie/Random Generator/");
     prova ssy(L,O,1,3,type,ortem,pos);
     
     ssy.blocks(true);
