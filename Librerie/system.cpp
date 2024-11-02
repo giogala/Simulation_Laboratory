@@ -68,7 +68,6 @@ double System :: Force(int i, int dim){
 void System :: move(int i){ // Propose a MC move for particle i
     if(_sim_type == 3){ //Gibbs sampler for Ising
         double p_up= 1./(1.+exp(-_beta*(_J*2*(_particle(this->pbc(i-1)).getspin()+_particle(this->pbc(i+1)).getspin())+_H*2)));
-            // è giusta così?
         if(_rnd.Rannyu()<p_up) _particle(i).setspin(1);
         else _particle(i).setspin(-1);
         
@@ -337,7 +336,7 @@ void System :: initialize_properties(){ // Initialize data members used for meas
                     _index_penergy = index_property;
                     _measure_penergy = true;
                     index_property++;
-                    _vtail = 0.0; // TO BE FIXED IN EXERCISE 7
+                    _vtail = ((8.*M_PI*_rho)/3.)*((1./(3.*pow(_r_cut,9)))-(1./pow(_r_cut,3)));
                 } else if( property == "KINETIC_ENERGY" ){
                     ofstream coutk(out+"/kinetic_energy.dat");
                     coutk << "#BLOCK:\tACTUAL_KE:\tKE_AVE:\tERROR:" << endl;
@@ -370,7 +369,7 @@ void System :: initialize_properties(){ // Initialize data members used for meas
                     _measure_pressure = true;
                     _index_pressure = index_property;
                     index_property++;
-                    _ptail = 0.0; // TO BE FIXED IN EXERCISE 7
+                    _ptail = ((32.*M_PI* _rho)/3.)*((1./(3.*pow(_r_cut,9)))-(1./(2.*pow(_r_cut,3))));
                 } else if( property == "GOFR" ){
                     ofstream coutgr(out+"/gofr.dat");
                     coutgr << "#DISTANCE:\tAVE_GOFR:\tERROR:" << endl;
