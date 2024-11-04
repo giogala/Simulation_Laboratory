@@ -31,6 +31,7 @@ int main (int argc, char** argv) {
         cerr<<"Unknown initial configuration"<<endl;
         return -1;
     }
+    test.PreL2(0);
     test.Check();
     
     for(int k=0;k<f;k++){
@@ -41,8 +42,8 @@ int main (int argc, char** argv) {
         Progress_Bar(k,f);
         test.Check();
         test.Sort();
-        test.Print(k);
-        test.L2(k);
+        test.Print(0,k);
+        test.L2(0,k);
     }
     
     return 0;
