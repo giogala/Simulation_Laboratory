@@ -26,9 +26,11 @@ data_files=("total_energy.dat" "kinetic_energy.dat" "potential_energy.dat" "temp
 input_dir="../INPUT"
 output_dir="../OUTPUT"
 
-# Estrai la temperatura desiderata
-t_fin=$(grep "TEMP" "$input_dir/$input_file" | awk '{print $2}')
-echo "$t_fin"
+# Estrai parametri desiderati desiderata
+t_fin=$(grep "TEMP" "$input_dir/$input_file" | awk '{print $2}') # temperatura estratta da $input.dat
+blk=$(grep "NBLOCKS" "$input_dir/$input_file" | awk '{print $2}') # numero di blocchi estratto da $input.dat
+spt=$(grep "NSTEPS" "$input_dir/$input_file" | awk '{print $2}') # numero di step per blocco estratto da $input.dat
+echo -e "$t_fin\n$blk\n$spt"
 
 # Definisco una funzione per le sostituzioni in input.dat
 if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -51,6 +53,10 @@ sub () {
 mkdir -p "$tot_dir"
 mkdir -p "$tot_dir/CONFIG"
 mkdir -p "$tot_dir/EQUIL"
+
+# Modifico il numero di blocchi e di step per blocco per l'equilibrazione
+sub "NBLOCKS                20" "NBLOCKS"
+sub "NSTEPS                 2000" "NSTEPS"
 
 while [[ "$equil" == "false" ]]; do
     echo "Equilibrazione"
@@ -86,8 +92,11 @@ done
 
 # Modifica linea della restart nell'input file
 sub "RESTART                1" "RESTART"
+# Ristabilisco il numero di blocchi e di step per blocco
+sub "NBLOCKS                $blk" "NBLOCKS"
+sub "NSTEPS                 $spt" "NSTEPS"
 
-echo "Simulazione avviata"
+echo -e "Simulazione avviata:\n$blk blocchi\n$spt step"
 
 # Esegui veramente la simulazione
 ./main "$input_file" "y"

@@ -315,12 +315,12 @@ void population::L2(int mig, int i){
     ofstream fout(_out+"loss_"+to_string(mig)+".txt",ios::app);
     double mean = 0;
     double var = 0;
-    for(int j=0;j<50;j++){
+    for(int j=0;j<_n/2;j++){
         mean += _pop[j].L2();
         var += pow(_pop[j].L2(),2);
     }
-    mean /= 50.;
-    var /= 50.;
+    mean /= _n/2;
+    var /= _n/2;
     var = sqrt(abs(var - mean*mean));
     fout<<i<<"\t"<<_pop[0].L2()<<"\t"<<mean<<"\t"<<var<<endl;
     fout.close();
