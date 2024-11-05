@@ -4,4 +4,4 @@ Le tre cartelle contengono la risoluzione delle rispettive richieste:
 - 1.2 si esegue con `./main <Numero_di_lanci>`
 - 1.3 si esegue con `./main <Numero_di_lanci> <Numero_di_blocchi>`
 
-Ciascun `main` è dotato del proprio `makefile`
+Ciascun `main` è prodotto con il comando `make`
